@@ -71,8 +71,10 @@ step() { echo; echo "== $1"; }
 fail() { echo "ERROR: $1"; exit 1; }
 
 deploy_app() {
-  if [ ! -f requirements.txt ]; then
-    fail "no requirements.txt here. Run this script from the folder of your app, or use --no-deploy."
+  # Cloud Run builds from a Dockerfile if there is one, otherwise it detects the
+  # language (Python, Node.js, ...). This only checks we are in an app folder.
+  if [ ! -f requirements.txt ] && [ ! -f package.json ] && [ ! -f Dockerfile ]; then
+    fail "no requirements.txt, package.json or Dockerfile here. Run this script from the folder of your app, or use --no-deploy."
   fi
   gcloud run deploy "$APP" --source . --project "$PROJECT" --region "$REGION" --allow-unauthenticated --quiet \
     || fail "deploy failed. Read the message above."
